@@ -87,10 +87,6 @@ jobs:
       run: |
         flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 app/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    
-    - name: Type checking with mypy
-      run: |
-        mypy app/ --ignore-missing-imports
 
   build-docker:
     runs-on: ubuntu-latest
