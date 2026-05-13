@@ -1,13 +1,15 @@
-import pytest
-from pydantic import ValidationError
 from datetime import datetime
 
-from app.schemas.user import UserCreate, UserUpdate, UserRole
-from app.schemas.restaurant import RestaurantCreate, RestaurantUpdate
-from app.schemas.dish import DishCreate, DishUpdate, DishCategory
-from app.schemas.order import OrderCreate, OrderItemCreate, OrderStatus, PaymentMethod
+import pytest
+from pydantic import ValidationError
+
+from app.schemas.dish import DishCategory, DishCreate, DishUpdate
 from app.schemas.favorite import FavoriteCreate
+from app.schemas.order import (OrderCreate, OrderItemCreate, OrderStatus,
+                               PaymentMethod)
+from app.schemas.restaurant import RestaurantCreate, RestaurantUpdate
 from app.schemas.review import ReviewCreate
+from app.schemas.user import UserCreate, UserRole, UserUpdate
 
 
 class TestUserSchemas:

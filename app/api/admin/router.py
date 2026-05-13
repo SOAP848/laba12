@@ -1,17 +1,18 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
 
 from app.core.database import get_db
 from app.dependencies.auth import require_admin
-from app.models.user import User
-from app.models.restaurant import Restaurant
 from app.models.dish import Dish
 from app.models.order import Order
-from app.schemas.user import UserResponse, UserUpdate
-from app.schemas.restaurant import RestaurantResponse, RestaurantUpdate
+from app.models.restaurant import Restaurant
+from app.models.user import User
 from app.schemas.dish import DishResponse, DishUpdate
 from app.schemas.order import OrderResponse, OrderUpdate
+from app.schemas.restaurant import RestaurantResponse, RestaurantUpdate
+from app.schemas.user import UserResponse, UserUpdate
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 

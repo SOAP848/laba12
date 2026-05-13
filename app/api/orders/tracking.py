@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
 from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.dependencies.auth import get_current_user, require_restaurant_manager
-from app.models.user import User
 from app.models.order import Order, OrderStatus
 from app.models.tracking import OrderTracking
+from app.models.user import User
 from app.schemas.order import OrderTrackingCreate, OrderTrackingResponse
 
 router = APIRouter(prefix="/orders/{order_id}/tracking", tags=["Order Tracking"])
@@ -159,8 +160,8 @@ def get_estimated_delivery(
     # Логика расчета времени доставки
     # В реальном приложении здесь может быть сложная логика
 
-    from datetime import datetime, timedelta
     import random
+    from datetime import datetime, timedelta
 
     if order.estimated_delivery_time:
         estimated = order.estimated_delivery_time

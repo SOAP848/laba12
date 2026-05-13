@@ -1,17 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
 from typing import List, Optional
 
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
+
 from app.core.database import get_db
-from app.dependencies.auth import (
-    require_admin,
-    require_restaurant_manager,
-    get_current_user,
-)
-from app.models.user import User
-from app.models.restaurant import Restaurant
+from app.dependencies.auth import (get_current_user, require_admin,
+                                   require_restaurant_manager)
 from app.models.dish import Dish
-from app.schemas.dish import DishCreate, DishUpdate, DishResponse, DishList
+from app.models.restaurant import Restaurant
+from app.models.user import User
+from app.schemas.dish import DishCreate, DishList, DishResponse, DishUpdate
 
 router = APIRouter(prefix="/dishes", tags=["Dishes"])
 
