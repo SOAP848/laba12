@@ -4,8 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.dependencies.auth import (get_current_user, require_admin,
-                                   require_restaurant_manager)
+from app.dependencies.auth import (
+    get_current_user,
+    require_admin,
+    require_restaurant_manager,
+)
 from app.models.dish import Dish
 from app.models.restaurant import Restaurant
 from app.models.user import User

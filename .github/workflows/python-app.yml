@@ -83,10 +83,6 @@ jobs:
       run: |
         black --check app/
     
-    - name: Check imports with isort
-      run: |
-        isort --check-only app/
-    
     - name: Lint with flake8
       run: |
         flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics

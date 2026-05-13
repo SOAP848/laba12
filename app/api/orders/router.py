@@ -5,14 +5,22 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.dependencies.auth import (get_current_user, require_admin,
-                                   require_restaurant_manager)
+from app.dependencies.auth import (
+    get_current_user,
+    require_admin,
+    require_restaurant_manager,
+)
 from app.models.dish import Dish
 from app.models.order import Order, OrderItem, OrderStatus, PaymentStatus
 from app.models.restaurant import Restaurant
 from app.models.user import User
-from app.schemas.order import (OrderCreate, OrderItemCreate, OrderList,
-                               OrderResponse, OrderUpdate)
+from app.schemas.order import (
+    OrderCreate,
+    OrderItemCreate,
+    OrderList,
+    OrderResponse,
+    OrderUpdate,
+)
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 

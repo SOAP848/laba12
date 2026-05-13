@@ -5,8 +5,7 @@ from pydantic import ValidationError
 
 from app.schemas.dish import DishCategory, DishCreate, DishUpdate
 from app.schemas.favorite import FavoriteCreate
-from app.schemas.order import (OrderCreate, OrderItemCreate, OrderStatus,
-                               PaymentMethod)
+from app.schemas.order import OrderCreate, OrderItemCreate, OrderStatus, PaymentMethod
 from app.schemas.restaurant import RestaurantCreate, RestaurantUpdate
 from app.schemas.review import ReviewCreate
 from app.schemas.user import UserCreate, UserRole, UserUpdate
