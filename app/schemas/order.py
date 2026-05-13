@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import datetime
 from enum import Enum
 
+
 class OrderStatus(str, Enum):
     PENDING = "pending"
     CONFIRMED = "confirmed"
@@ -13,10 +14,12 @@ class OrderStatus(str, Enum):
     CANCELLED = "cancelled"
     FAILED = "failed"
 
+
 class PaymentMethod(str, Enum):
     CASH = "cash"
     CARD = "card"
     ONLINE = "online"
+
 
 class PaymentStatus(str, Enum):
     PENDING = "pending"
@@ -24,14 +27,17 @@ class PaymentStatus(str, Enum):
     FAILED = "failed"
     REFUNDED = "refunded"
 
+
 # Order Item
 class OrderItemBase(BaseModel):
     dish_id: int
     quantity: int = Field(1, ge=1, le=100)
     notes: Optional[str] = Field(None, max_length=200)
 
+
 class OrderItemCreate(OrderItemBase):
     pass
+
 
 class OrderItemResponse(OrderItemBase):
     id: int
@@ -40,6 +46,7 @@ class OrderItemResponse(OrderItemBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 # Order
 class OrderBase(BaseModel):
     restaurant_id: int
@@ -47,15 +54,17 @@ class OrderBase(BaseModel):
     delivery_notes: Optional[str] = Field(None, max_length=500)
     payment_method: PaymentMethod = PaymentMethod.CASH
 
+
 class OrderCreate(OrderBase):
     items: list[OrderItemCreate] = Field(..., min_length=1)
 
-    @field_validator('items')
+    @field_validator("items")
     @classmethod
     def validate_items(cls, v: list[OrderItemCreate]) -> list[OrderItemCreate]:
         if not v:
-            raise ValueError('Заказ должен содержать хотя бы одно блюдо')
+            raise ValueError("Заказ должен содержать хотя бы одно блюдо")
         return v
+
 
 class OrderUpdate(BaseModel):
     status: Optional[OrderStatus] = None
@@ -65,6 +74,7 @@ class OrderUpdate(BaseModel):
     payment_status: Optional[PaymentStatus] = None
     estimated_delivery_time: Optional[datetime] = None
     courier_id: Optional[int] = None
+
 
 class OrderInDB(OrderBase):
     id: int
@@ -80,14 +90,17 @@ class OrderInDB(OrderBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class OrderResponse(OrderInDB):
     items: list[OrderItemResponse]
+
 
 class OrderList(BaseModel):
     items: list[OrderResponse]
     total: int
     page: int
     size: int
+
 
 # Tracking
 class OrderTrackingBase(BaseModel):
@@ -97,8 +110,10 @@ class OrderTrackingBase(BaseModel):
     location_lng: Optional[str] = None
     estimated_minutes: Optional[int] = Field(None, ge=0, le=300)
 
+
 class OrderTrackingCreate(OrderTrackingBase):
     order_id: int
+
 
 class OrderTrackingResponse(OrderTrackingBase):
     id: int

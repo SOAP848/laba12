@@ -1,8 +1,18 @@
-from sqlalchemy import Column, Integer, String, Text, Float, DateTime, ForeignKey, CheckConstraint
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    Float,
+    DateTime,
+    ForeignKey,
+    CheckConstraint,
+)
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
+
 
 class Review(Base):
     __tablename__ = "reviews"
@@ -24,7 +34,7 @@ class Review(Base):
 
     # Ограничение: рейтинг от 1 до 5
     __table_args__ = (
-        CheckConstraint('rating >= 1 AND rating <= 5', name='rating_range'),
+        CheckConstraint("rating >= 1 AND rating <= 5", name="rating_range"),
     )
 
     def __repr__(self):

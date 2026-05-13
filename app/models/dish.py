@@ -1,9 +1,20 @@
-from sqlalchemy import Column, Integer, String, Text, Float, Boolean, DateTime, ForeignKey, Enum
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    Float,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Enum,
+)
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import enum
 
 from app.core.database import Base
+
 
 class DishCategory(str, enum.Enum):
     APPETIZER = "appetizer"
@@ -11,6 +22,7 @@ class DishCategory(str, enum.Enum):
     DESSERT = "dessert"
     DRINK = "drink"
     SIDE = "side"
+
 
 class Dish(Base):
     __tablename__ = "dishes"

@@ -1,8 +1,18 @@
-from sqlalchemy import Column, Integer, String, Text, Float, Boolean, DateTime, ForeignKey
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    Float,
+    Boolean,
+    DateTime,
+    ForeignKey,
+)
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
+
 
 class Restaurant(Base):
     __tablename__ = "restaurants"
@@ -24,7 +34,9 @@ class Restaurant(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
-    dishes = relationship("Dish", back_populates="restaurant", cascade="all, delete-orphan")
+    dishes = relationship(
+        "Dish", back_populates="restaurant", cascade="all, delete-orphan"
+    )
     orders = relationship("Order", back_populates="restaurant")
     favorites = relationship("Favorite", back_populates="restaurant")
     reviews = relationship("Review", back_populates="restaurant")

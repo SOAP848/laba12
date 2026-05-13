@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 
 from app.core.database import Base
 
+
 class OrderTracking(Base):
     __tablename__ = "order_tracking"
 

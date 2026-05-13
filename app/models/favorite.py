@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 
 from app.core.database import Base
 
+
 class Favorite(Base):
     __tablename__ = "favorites"
 
@@ -20,8 +21,8 @@ class Favorite(Base):
 
     # Ограничение: либо ресторан, либо блюдо, но не оба одновременно
     __table_args__ = (
-        UniqueConstraint('user_id', 'restaurant_id', name='unique_user_restaurant'),
-        UniqueConstraint('user_id', 'dish_id', name='unique_user_dish'),
+        UniqueConstraint("user_id", "restaurant_id", name="unique_user_restaurant"),
+        UniqueConstraint("user_id", "dish_id", name="unique_user_dish"),
     )
 
     def __repr__(self):

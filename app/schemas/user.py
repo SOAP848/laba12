@@ -3,11 +3,13 @@ from typing import Optional
 from datetime import datetime
 from enum import Enum
 
+
 class UserRole(str, Enum):
     CUSTOMER = "customer"
     RESTAURANT_MANAGER = "restaurant_manager"
     ADMIN = "admin"
     COURIER = "courier"
+
 
 # Base
 class UserBase(BaseModel):
@@ -17,18 +19,20 @@ class UserBase(BaseModel):
     phone_number: Optional[str] = Field(None, pattern=r"^\+?[1-9]\d{1,14}$")
     address: Optional[str] = Field(None, max_length=200)
 
+
 # Create
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8, max_length=100)
 
-    @field_validator('password')
+    @field_validator("password")
     @classmethod
     def password_strength(cls, v: str) -> str:
         if not any(c.isupper() for c in v):
-            raise ValueError('Пароль должен содержать хотя бы одну заглавную букву')
+            raise ValueError("Пароль должен содержать хотя бы одну заглавную букву")
         if not any(c.isdigit() for c in v):
-            raise ValueError('Пароль должен содержать хотя бы одну цифру')
+            raise ValueError("Пароль должен содержать хотя бы одну цифру")
         return v
+
 
 # Update
 class UserUpdate(BaseModel):
@@ -38,6 +42,7 @@ class UserUpdate(BaseModel):
     phone_number: Optional[str] = Field(None, pattern=r"^\+?[1-9]\d{1,14}$")
     address: Optional[str] = Field(None, max_length=200)
     password: Optional[str] = Field(None, min_length=8, max_length=100)
+
 
 # In DB
 class UserInDB(UserBase):
@@ -50,9 +55,11 @@ class UserInDB(UserBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 # Response
 class UserResponse(UserInDB):
     pass
+
 
 # Auth
 class Token(BaseModel):
@@ -60,10 +67,12 @@ class Token(BaseModel):
     token_type: str = "bearer"
     expires_in: int
 
+
 class TokenData(BaseModel):
     username: Optional[str] = None
     user_id: Optional[int] = None
     role: Optional[UserRole] = None
+
 
 class LoginRequest(BaseModel):
     username: str

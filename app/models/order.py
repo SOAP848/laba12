@@ -1,9 +1,20 @@
-from sqlalchemy import Column, Integer, String, Text, Float, Boolean, DateTime, ForeignKey, Enum
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    Float,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Enum,
+)
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import enum
 
 from app.core.database import Base
+
 
 class OrderStatus(str, enum.Enum):
     PENDING = "pending"
@@ -15,16 +26,19 @@ class OrderStatus(str, enum.Enum):
     CANCELLED = "cancelled"
     FAILED = "failed"
 
+
 class PaymentMethod(str, enum.Enum):
     CASH = "cash"
     CARD = "card"
     ONLINE = "online"
+
 
 class PaymentStatus(str, enum.Enum):
     PENDING = "pending"
     PAID = "paid"
     FAILED = "failed"
     REFUNDED = "refunded"
+
 
 class Order(Base):
     __tablename__ = "orders"
@@ -36,8 +50,12 @@ class Order(Base):
     total_amount = Column(Float, nullable=False)
     delivery_address = Column(String, nullable=False)
     delivery_notes = Column(Text, nullable=True)
-    payment_method = Column(Enum(PaymentMethod), default=PaymentMethod.CASH, nullable=False)
-    payment_status = Column(Enum(PaymentStatus), default=PaymentStatus.PENDING, nullable=False)
+    payment_method = Column(
+        Enum(PaymentMethod), default=PaymentMethod.CASH, nullable=False
+    )
+    payment_status = Column(
+        Enum(PaymentStatus), default=PaymentStatus.PENDING, nullable=False
+    )
     estimated_delivery_time = Column(DateTime(timezone=True), nullable=True)
     actual_delivery_time = Column(DateTime(timezone=True), nullable=True)
     courier_id = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -48,11 +66,16 @@ class Order(Base):
     user = relationship("User", foreign_keys=[user_id], back_populates="orders")
     restaurant = relationship("Restaurant", back_populates="orders")
     courier = relationship("User", foreign_keys=[courier_id])
-    items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
-    tracking = relationship("OrderTracking", back_populates="order", cascade="all, delete-orphan")
+    items = relationship(
+        "OrderItem", back_populates="order", cascade="all, delete-orphan"
+    )
+    tracking = relationship(
+        "OrderTracking", back_populates="order", cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<Order(id={self.id}, status={self.status}, total={self.total_amount})>"
+
 
 class OrderItem(Base):
     __tablename__ = "order_items"
@@ -69,4 +92,6 @@ class OrderItem(Base):
     dish = relationship("Dish", back_populates="order_items")
 
     def __repr__(self):
-        return f"<OrderItem(id={self.id}, dish={self.dish_id}, quantity={self.quantity})>"
+        return (
+            f"<OrderItem(id={self.id}, dish={self.dish_id}, quantity={self.quantity})>"
+        )

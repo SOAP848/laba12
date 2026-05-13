@@ -3,12 +3,14 @@ from typing import Optional
 from datetime import datetime
 from enum import Enum
 
+
 class DishCategory(str, Enum):
     APPETIZER = "appetizer"
     MAIN = "main"
     DESSERT = "dessert"
     DRINK = "drink"
     SIDE = "side"
+
 
 class DishBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
@@ -20,8 +22,10 @@ class DishBase(BaseModel):
     cooking_time_min: int = Field(5, ge=1, le=300)
     is_available: bool = True
 
+
 class DishCreate(DishBase):
     restaurant_id: int
+
 
 class DishUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=100)
@@ -33,6 +37,7 @@ class DishUpdate(BaseModel):
     cooking_time_min: Optional[int] = Field(None, ge=1, le=300)
     is_available: Optional[bool] = None
 
+
 class DishInDB(DishBase):
     id: int
     restaurant_id: int
@@ -42,8 +47,10 @@ class DishInDB(DishBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class DishResponse(DishInDB):
     pass
+
 
 class DishList(BaseModel):
     items: list[DishResponse]
