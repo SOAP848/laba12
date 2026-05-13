@@ -48,7 +48,8 @@ food-delivery-api/
 │   ├── dependencies/          # Зависимости
 │   └── tests/                 # Тесты
 ├── alembic/                   # Миграции
-├── .github/workflows/         # CI/CD
+├── .github/workflows/   
+│   └── python-app.yml         # CI/CD
 ├── docker-compose.yml         # Docker Compose
 ├── Dockerfile                 # Docker образ
 ├── requirements.txt           # Зависимости
