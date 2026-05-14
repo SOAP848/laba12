@@ -1,6 +1,6 @@
 import pytest
 from sqlalchemy.orm import Session
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from app.models.restaurant import Restaurant
 from app.schemas.restaurant import RestaurantCreate, RestaurantUpdate
@@ -16,19 +16,20 @@ class TestRestaurantService:
 
     @pytest.fixture
     def sample_restaurant(self):
-        return Restaurant(
-            id=1,
-            name="Test Restaurant",
-            description="Test description",
-            address="Test address",
-            phone="+79991234567",
-            email="test@example.com",
-            delivery_fee=100.0,
-            min_order_amount=500.0,
-            delivery_time_min=30,
-            delivery_time_max=60,
-            is_active=True,
-        )
+        # Возвращаем мок, чтобы избежать проблем с инициализацией SQLAlchemy мапперов
+        mock = Mock(spec=Restaurant)
+        mock.id = 1
+        mock.name = "Test Restaurant"
+        mock.description = "Test description"
+        mock.address = "Test address"
+        mock.phone = "+79991234567"
+        mock.email = "test@example.com"
+        mock.delivery_fee = 100.0
+        mock.min_order_amount = 500.0
+        mock.delivery_time_min = 30
+        mock.delivery_time_max = 60
+        mock.is_active = True
+        return mock
 
     def test_get_all(self, mock_db):
         """Получение списка ресторанов."""
@@ -37,7 +38,8 @@ class TestRestaurantService:
         mock_query.filter.return_value = mock_query
         mock_query.count.return_value = 2
         mock_query.offset.return_value = mock_query
-        mock_query.limit.return_value = [Mock(), Mock()]
+        mock_query.limit.return_value = mock_query
+        mock_query.all.return_value = [Mock(), Mock()]
 
         restaurants, total = RestaurantService.get_all(
             mock_db, skip=0, limit=20, is_active=True
@@ -54,7 +56,8 @@ class TestRestaurantService:
         assert result is not None
         mock_db.query.assert_called_once_with(Restaurant)
 
-    def test_create(self, mock_db):
+    @patch('app.services.restaurant_service.Restaurant')
+    def test_create(self, mock_restaurant_cls, mock_db):
         """Создание ресторана."""
         restaurant_data = RestaurantCreate(
             name="New Restaurant",
@@ -68,15 +71,18 @@ class TestRestaurantService:
             delivery_time_max=80,
             is_active=True,
         )
+        mock_restaurant = Mock()
+        mock_restaurant_cls.return_value = mock_restaurant
         mock_db.add = Mock()
         mock_db.commit = Mock()
         mock_db.refresh = Mock()
 
         result = RestaurantService.create(mock_db, restaurant_data)
-        assert result is not None
-        mock_db.add.assert_called_once()
+        assert result is mock_restaurant
+        mock_restaurant_cls.assert_called_once_with(**restaurant_data.model_dump())
+        mock_db.add.assert_called_once_with(mock_restaurant)
         mock_db.commit.assert_called_once()
-        mock_db.refresh.assert_called_once()
+        mock_db.refresh.assert_called_once_with(mock_restaurant)
 
     def test_update(self, mock_db, sample_restaurant):
         """Обновление ресторана."""
