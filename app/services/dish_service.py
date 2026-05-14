@@ -50,9 +50,7 @@ class DishService:
         return dish
 
     @staticmethod
-    def update(
-        db: Session, dish: Dish, update_data: DishUpdate
-    ) -> Dish:
+    def update(db: Session, dish: Dish, update_data: DishUpdate) -> Dish:
         """Обновить данные блюда."""
         for field, value in update_data.model_dump(exclude_unset=True).items():
             setattr(dish, field, value)

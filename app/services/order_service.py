@@ -48,7 +48,9 @@ class OrderService:
         """Создать новый заказ."""
         # Проверка существования ресторана
         restaurant = (
-            db.query(Restaurant).filter(Restaurant.id == order_data.restaurant_id).first()
+            db.query(Restaurant)
+            .filter(Restaurant.id == order_data.restaurant_id)
+            .first()
         )
         if not restaurant or not restaurant.is_active:
             raise ValueError("Ресторан не найден или неактивен")
@@ -69,7 +71,9 @@ class OrderService:
             )
 
             if not dish:
-                raise ValueError(f"Блюдо с ID {item.dish_id} недоступно или не принадлежит ресторану")
+                raise ValueError(
+                    f"Блюдо с ID {item.dish_id} недоступно или не принадлежит ресторану"
+                )
 
             total_amount += dish.price * item.quantity
 
@@ -105,9 +109,7 @@ class OrderService:
         return db_order
 
     @staticmethod
-    def update(
-        db: Session, order: Order, update_data: OrderUpdate
-    ) -> Order:
+    def update(db: Session, order: Order, update_data: OrderUpdate) -> Order:
         """Обновить данные заказа."""
         for field, value in update_data.model_dump(exclude_unset=True).items():
             setattr(order, field, value)
@@ -132,7 +134,11 @@ class OrderService:
     @staticmethod
     def cancel_order(db: Session, order: Order) -> Order:
         """Отменить заказ."""
-        if order.status not in [OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.PREPARING]:
+        if order.status not in [
+            OrderStatus.PENDING,
+            OrderStatus.CONFIRMED,
+            OrderStatus.PREPARING,
+        ]:
             raise ValueError("Невозможно отменить заказ в текущем статусе")
         order.status = OrderStatus.CANCELLED
         db.commit()
@@ -140,7 +146,9 @@ class OrderService:
         return order
 
     @staticmethod
-    def get_user_orders(db: Session, user_id: int, skip: int = 0, limit: int = 20) -> tuple[List[Order], int]:
+    def get_user_orders(
+        db: Session, user_id: int, skip: int = 0, limit: int = 20
+    ) -> tuple[List[Order], int]:
         """Получить заказы конкретного пользователя."""
         query = db.query(Order).filter(Order.user_id == user_id)
         total = query.count()
@@ -148,7 +156,9 @@ class OrderService:
         return orders, total
 
     @staticmethod
-    def get_restaurant_orders(db: Session, restaurant_id: int, skip: int = 0, limit: int = 20) -> tuple[List[Order], int]:
+    def get_restaurant_orders(
+        db: Session, restaurant_id: int, skip: int = 0, limit: int = 20
+    ) -> tuple[List[Order], int]:
         """Получить заказы конкретного ресторана."""
         query = db.query(Order).filter(Order.restaurant_id == restaurant_id)
         total = query.count()

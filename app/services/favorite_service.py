@@ -35,7 +35,9 @@ class FavoriteService:
         """Добавить в избранное."""
         # Проверка, что указан ровно один целевой объект
         if not (favorite_data.restaurant_id is None) ^ (favorite_data.dish_id is None):
-            raise ValueError("Должен быть указан ровно один целевой объект (ресторан или блюдо)")
+            raise ValueError(
+                "Должен быть указан ровно один целевой объект (ресторан или блюдо)"
+            )
 
         # Проверка уникальности (чтобы не дублировать)
         existing = (

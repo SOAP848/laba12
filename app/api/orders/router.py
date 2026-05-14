@@ -164,7 +164,9 @@ def create_order(
     db.refresh(db_order)
 
     # Отправка подтверждения заказа через Celery (асинхронно)
-    send_order_confirmation.delay(order_id=db_order.id, customer_email=current_user.email)
+    send_order_confirmation.delay(
+        order_id=db_order.id, customer_email=current_user.email
+    )
 
     return db_order
 

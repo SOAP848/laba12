@@ -5,7 +5,7 @@ celery_app = Celery(
     "food_delivery",
     broker=settings.REDIS_URL,
     backend=settings.REDIS_URL,
-    include=["app.tasks.email_tasks", "app.tasks.notification_tasks"]
+    include=["app.tasks.email_tasks", "app.tasks.notification_tasks"],
 )
 
 # Конфигурация Celery

@@ -46,7 +46,9 @@ class ReviewService:
         """Создать новый отзыв."""
         # Проверка, что указан ровно один целевой объект
         if not (review_data.restaurant_id is None) ^ (review_data.dish_id is None):
-            raise ValueError("Должен быть указан ровно один целевой объект (ресторан или блюдо)")
+            raise ValueError(
+                "Должен быть указан ровно один целевой объект (ресторан или блюдо)"
+            )
 
         # Проверка, что пользователь ещё не оставлял отзыв на этот объект
         existing = (
@@ -68,9 +70,7 @@ class ReviewService:
         return review
 
     @staticmethod
-    def update(
-        db: Session, review: Review, update_data: ReviewUpdate
-    ) -> Review:
+    def update(db: Session, review: Review, update_data: ReviewUpdate) -> Review:
         """Обновить данные отзыва."""
         for field, value in update_data.model_dump(exclude_unset=True).items():
             setattr(review, field, value)
@@ -108,7 +108,9 @@ class ReviewService:
         return total / len(ratings)
 
     @staticmethod
-    def get_user_reviews(db: Session, user_id: int, skip: int = 0, limit: int = 20) -> tuple[List[Review], int]:
+    def get_user_reviews(
+        db: Session, user_id: int, skip: int = 0, limit: int = 20
+    ) -> tuple[List[Review], int]:
         """Получить отзывы конкретного пользователя."""
         query = db.query(Review).filter(Review.user_id == user_id)
         total = query.count()
@@ -116,7 +118,9 @@ class ReviewService:
         return reviews, total
 
     @staticmethod
-    def get_restaurant_reviews(db: Session, restaurant_id: int, skip: int = 0, limit: int = 20) -> tuple[List[Review], int]:
+    def get_restaurant_reviews(
+        db: Session, restaurant_id: int, skip: int = 0, limit: int = 20
+    ) -> tuple[List[Review], int]:
         """Получить отзывы конкретного ресторана."""
         query = db.query(Review).filter(Review.restaurant_id == restaurant_id)
         total = query.count()
@@ -124,7 +128,9 @@ class ReviewService:
         return reviews, total
 
     @staticmethod
-    def get_dish_reviews(db: Session, dish_id: int, skip: int = 0, limit: int = 20) -> tuple[List[Review], int]:
+    def get_dish_reviews(
+        db: Session, dish_id: int, skip: int = 0, limit: int = 20
+    ) -> tuple[List[Review], int]:
         """Получить отзывы конкретного блюда."""
         query = db.query(Review).filter(Review.dish_id == dish_id)
         total = query.count()

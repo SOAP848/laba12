@@ -40,16 +40,14 @@ def list_reviews(
     if order_id is not None:
         query = query.filter(Review.order_id == order_id)
 
-    # Если не админ, показываем только свои отзывы или публичные? 
+    # Если не админ, показываем только свои отзывы или публичные?
     # Решаем: пользователь видит все отзывы (публичные), но можно ограничить.
     # Оставим как есть.
 
     total = query.count()
     reviews = query.offset(skip).limit(limit).all()
 
-    return ReviewList(
-        items=reviews, total=total, page=skip // limit + 1, size=limit
-    )
+    return ReviewList(items=reviews, total=total, page=skip // limit + 1, size=limit)
 
 
 @router.post("/", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)
@@ -79,17 +77,25 @@ def create_review(
             raise HTTPException(status_code=404, detail="Заказ не найден")
         # Проверка, что заказ принадлежит текущему пользователю
         if order.user_id != current_user.id:
-            raise HTTPException(status_code=403, detail="Нельзя оставить отзыв на чужой заказ")
+            raise HTTPException(
+                status_code=403, detail="Нельзя оставить отзыв на чужой заказ"
+            )
 
     # Проверка, не оставлял ли пользователь уже отзыв на этот объект
-    existing = db.query(Review).filter(
-        Review.user_id == current_user.id,
-        Review.restaurant_id == review_data.restaurant_id,
-        Review.dish_id == review_data.dish_id,
-        Review.order_id == review_data.order_id,
-    ).first()
+    existing = (
+        db.query(Review)
+        .filter(
+            Review.user_id == current_user.id,
+            Review.restaurant_id == review_data.restaurant_id,
+            Review.dish_id == review_data.dish_id,
+            Review.order_id == review_data.order_id,
+        )
+        .first()
+    )
     if existing:
-        raise HTTPException(status_code=400, detail="Вы уже оставили отзыв на этот объект")
+        raise HTTPException(
+            status_code=400, detail="Вы уже оставили отзыв на этот объект"
+        )
 
     review = Review(
         **review_data.model_dump(),

@@ -39,7 +39,9 @@ class TestRestaurantService:
         mock_query.offset.return_value = mock_query
         mock_query.limit.return_value = [Mock(), Mock()]
 
-        restaurants, total = RestaurantService.get_all(mock_db, skip=0, limit=20, is_active=True)
+        restaurants, total = RestaurantService.get_all(
+            mock_db, skip=0, limit=20, is_active=True
+        )
         assert total == 2
         assert len(restaurants) == 2
         mock_db.query.assert_called_once_with(Restaurant)
