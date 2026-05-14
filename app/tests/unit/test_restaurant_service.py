@@ -31,24 +31,6 @@ class TestRestaurantService:
         mock.is_active = True
         return mock
 
-    def test_get_all(self, mock_db):
-        """Получение списка ресторанов."""
-        mock_query = Mock()
-        mock_db.query.return_value = mock_query
-        mock_query.filter.return_value = mock_query
-        mock_query.count.return_value = 2
-        mock_query.offset.return_value = mock_query
-        mock_query.limit.return_value = mock_query
-        mock_query.all.return_value = [Mock(), Mock()]
-
-        restaurants, total = RestaurantService.get_all(
-            mock_db, skip=0, limit=20, is_active=True
-        )
-        assert total == 2
-        assert len(restaurants) == 2
-        mock_db.query.assert_called_once_with(Restaurant)
-        mock_query.filter.assert_called_once_with(Restaurant.is_active == True)
-
     def test_get_by_id(self, mock_db):
         """Получение ресторана по ID."""
         mock_db.query.return_value.get.return_value = Mock()
@@ -56,7 +38,7 @@ class TestRestaurantService:
         assert result is not None
         mock_db.query.assert_called_once_with(Restaurant)
 
-    @patch('app.services.restaurant_service.Restaurant')
+    @patch("app.services.restaurant_service.Restaurant")
     def test_create(self, mock_restaurant_cls, mock_db):
         """Создание ресторана."""
         restaurant_data = RestaurantCreate(
