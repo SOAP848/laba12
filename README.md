@@ -1,5 +1,3 @@
-
-
 # Food Delivery Service API
 
 FastAPI веб-приложение для сервиса доставки еды с полным функционалом управления ресторанами, блюдами, заказами и пользователями.
@@ -40,19 +38,22 @@ food-delivery-api/
 │   │   ├── dishes/            # Блюда
 │   │   ├── orders/            # Заказы
 │   │   ├── favorites/         # Избранное
+│   │   ├── reviews/           # Отзывы (новый)
 │   │   └── admin/             # Админ-панель
 │   ├── models/                # Модели БД
 │   ├── schemas/               # Схемы Pydantic
-│   ├── services/              # Бизнес-логика
-│   ├── core/                  # Конфигурация
+│   ├── services/              # Бизнес-логика (новый слой)
+│   ├── core/                  # Конфигурация (cache, celery, config, database, security)
 │   ├── dependencies/          # Зависимости
+│   ├── tasks/                 # Асинхронные задачи Celery (новый)
 │   └── tests/                 # Тесты
-├── alembic/                   # Миграции
+├── alembic/                   # Миграции (включая env.py и версии)
 ├── .github/workflows/   
 │   └── python-app.yml         # CI/CD
-├── docker-compose.yml         # Docker Compose
+├── docker-compose.yml         # Docker Compose (с сервисом app)
 ├── Dockerfile                 # Docker образ
 ├── requirements.txt           # Зависимости
+├── .env.example               # Шаблон переменных окружения (новый)
 └── README.md                  # Документация
 ```
 
@@ -72,10 +73,13 @@ docker-compose up -d
 ```
 
 Сервисы:
-- API: http://localhost:8000
-- PostgreSQL: localhost:5432
-- Redis: localhost:6379
-- PgAdmin: http://localhost:5050 (admin@admin.com / admin)
+- **API**: http://localhost:8000
+- **PostgreSQL**: localhost:5432
+- **Redis**: localhost:6379
+- **PgAdmin**: http://localhost:5050 (admin@admin.com / admin)
+- **Celery worker**: запускается внутри контейнера `app` (см. раздел «Задачи Celery»)
+
+Приложение автоматически применяет миграции Alembic при старте.
 
 ### 3. Ручная установка
 
@@ -97,7 +101,13 @@ pip install -r requirements.txt
 
 #### Настройка окружения
 
-Создайте файл `.env`:
+Скопируйте шаблон `.env.example` в `.env` и настройте переменные:
+
+```bash
+cp .env.example .env
+```
+
+Отредактируйте `.env` (укажите свои значения):
 
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/food_delivery_db
@@ -111,10 +121,7 @@ DEBUG=True
 #### Инициализация базы данных
 
 ```bash
-# Создание таблиц
-python -c "from app.core.database import Base, engine; Base.metadata.create_all(bind=engine)"
-
-# Или с использованием Alembic
+# Применение миграций Alembic
 alembic upgrade head
 ```
 
@@ -126,11 +133,78 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 Приложение будет доступно по адресу: http://localhost:8000
 
+#### Запуск Celery worker (для асинхронных задач)
+
+```bash
+celery -A app.core.celery.celery_app worker --loglevel=info
+```
+
 ## API Документация
 
 После запуска доступны:
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
+
+## Новые компоненты
+
+### API для отзывов
+
+Добавлен роутер `/api/reviews/` для управления отзывами на рестораны и блюда. Поддерживает CRUD операции с проверкой прав доступа. Отзыв должен быть привязан либо к ресторану, либо к блюду (но не к обоим одновременно). Валидация рейтинга (1‑5 звёзд) и текста.
+
+Пример запроса:
+```bash
+POST /api/reviews/
+{
+  "rating": 5,
+  "comment": "Отличный ресторан!",
+  "restaurant_id": 1
+}
+```
+
+### Кэширование с Redis
+
+Реализован клиент Redis в `app/core/cache.py`. Поддерживает операции get, set, delete с TTL. Используется для снижения нагрузки на БД, например, кэширование списка ресторанов.
+
+Пример использования в роутере:
+```python
+from app.core.cache import redis_cache
+
+cached = redis_cache.get("restaurants:list")
+if cached:
+    return json.loads(cached)
+# иначе загрузить из БД и сохранить в кэш
+```
+
+### Асинхронные задачи с Celery
+
+Настроена очередь задач Celery с брокером Redis. Примеры задач в `app/tasks/email_tasks.py`:
+- `send_welcome_email` – отправка приветственного письма после регистрации.
+- `send_order_confirmation` – отправка подтверждения заказа.
+
+Интеграция с бизнес-логикой: после регистрации пользователя можно вызвать `send_welcome_email.delay(user_email, username)`.
+
+### Слой services
+
+Создана папка `app/services/` для инкапсуляции бизнес-логики. Пример: `restaurant_service.py` содержит методы для работы с ресторанами, отделяя логику от роутеров. Это улучшает тестируемость и поддерживаемость.
+
+### Миграции Alembic
+
+Проект использует Alembic для управления миграциями БД. Начальная миграция `9ebdd3baa85f_initial_migration.py` создаёт все таблицы. При запуске через docker‑compose миграции применяются автоматически. Вручную:
+
+```bash
+# Создание новой миграции (после изменения моделей)
+alembic revision --autogenerate -m "Описание изменений"
+
+# Применение миграций
+alembic upgrade head
+
+# Откат
+alembic downgrade -1
+```
+
+### Шаблон .env.example
+
+Создан файл `.env.example` с описанием всех необходимых переменных окружения. Используйте его как основу для своего `.env`.
 
 ## Тестирование
 
@@ -150,7 +224,7 @@ pytest app/tests/unit/test_models.py -v
 ### Типы тестов
 
 - **Unit-тесты**: тестирование моделей и схем
-- **Тесты граничных значений**: проверка валидации данных
+- **Тесты граничных значений**: проверка валидации данных (отрицательные цены, пустые списки, минимальные/максимальные значения)
 
 ## CI/CD
 
@@ -159,6 +233,8 @@ pytest app/tests/unit/test_models.py -v
 - **Линтинг** кода (black, flake8)
 - **Сборка Docker образа** при пуше в main
 - **Деплой** в продакшн (настраивается)
+
+Конфигурация находится в `.github/workflows/ci.yml`.
 
 ## Администрирование
 
@@ -184,19 +260,6 @@ db.commit()
 ### Доступ к админ-панели
 
 Админ-панель доступна по адресу `/api/admin` (требуются права администратора).
-
-## Миграции базы данных
-
-```bash
-# Создание новой миграции
-alembic revision --autogenerate -m "Описание изменений"
-
-# Применение миграций
-alembic upgrade head
-
-# Откат миграции
-alembic downgrade -1
-```
 
 ## Развертывание в продакшн
 
@@ -242,4 +305,3 @@ docker-compose -f docker-compose.prod.yml up -d
 ## Лицензия
 
 MIT
-
