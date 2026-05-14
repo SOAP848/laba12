@@ -3,7 +3,6 @@ import pickle
 from typing import Any, Optional
 
 import redis
-from pydantic import BaseSettings
 
 from app.core.config import settings
 
