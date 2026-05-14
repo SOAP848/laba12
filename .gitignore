@@ -1,4 +1,4 @@
-# Environment variables
+# Файлы окружения
 .env
 .env.local
 .env.*.local
@@ -26,7 +26,7 @@ wheels/
 *.egg
 MANIFEST
 
-# Virtual environments
+# Виртуальные окружения
 venv/
 env/
 ENV/
@@ -48,17 +48,17 @@ ENV/
 ehthumbs.db
 Thumbs.db
 
-# Logs
+# Логи
 logs/
 *.log
 
-# Database files
+# Базы данных
 *.db
 *.sqlite
 *.sqlite3
 test.db
 
-# Coverage
+# Покрытие кода
 .coverage
 htmlcov/
 .coverage.*
@@ -67,10 +67,17 @@ htmlcov/
 # Docker
 docker-compose.override.yml
 
-# Temporary files
+# Временные файлы
 tmp/
 temp/
 
-# Project specific
-check_server.py  # временный скрипт для проверки сервера
-.dist/           # сгенерированные дистрибутивы
+# Celery
+celerybeat-schedule
+*.pid
+
+# Alembic (версии миграций можно коммитить, но если хотите исключить сгенерированные)
+# alembic/versions/*.py
+
+# Проект-специфичные
+check_server.py
+.dist/
