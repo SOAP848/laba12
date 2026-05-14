@@ -38,22 +38,23 @@ food-delivery-api/
 │   │   ├── dishes/            # Блюда
 │   │   ├── orders/            # Заказы
 │   │   ├── favorites/         # Избранное
-│   │   ├── reviews/           # Отзывы (новый)
+│   │   ├── reviews/           # Отзывы 
 │   │   └── admin/             # Админ-панель
 │   ├── models/                # Модели БД
 │   ├── schemas/               # Схемы Pydantic
-│   ├── services/              # Бизнес-логика (новый слой)
-│   ├── core/                  # Конфигурация (cache, celery, config, database, security)
+│   ├── services/              # Бизнес-логика
+│   ├── core/                  # Конфигурация 
 │   ├── dependencies/          # Зависимости
-│   ├── tasks/                 # Асинхронные задачи Celery (новый)
+│   ├── tasks/                 # Асинхронные задачи Celery 
 │   └── tests/                 # Тесты
-├── alembic/                   # Миграции (включая env.py и версии)
+├── alembic/                   # Миграции 
 ├── .github/workflows/   
 │   └── python-app.yml         # CI/CD
-├── docker-compose.yml         # Docker Compose (с сервисом app)
+├── docker-compose.yml         # Docker Compose 
 ├── Dockerfile                 # Docker образ
 ├── requirements.txt           # Зависимости
-├── .env.example               # Шаблон переменных окружения (новый)
+├── .env.example               # Шаблон переменных окружения 
+├── PROMPT_LOG.md              # Лог промптов
 └── README.md                  # Документация
 ```
 
