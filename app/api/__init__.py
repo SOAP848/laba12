@@ -7,6 +7,7 @@ from app.api.favorites.router import router as favorites_router
 from app.api.orders.router import router as orders_router
 from app.api.orders.tracking import router as tracking_router
 from app.api.restaurants.router import router as restaurants_router
+from app.api.reviews.router import router as reviews_router
 
 api_router = APIRouter()
 
@@ -17,4 +18,5 @@ api_router.include_router(dishes_router)
 api_router.include_router(orders_router)
 api_router.include_router(tracking_router)
 api_router.include_router(favorites_router)
+api_router.include_router(reviews_router)
 api_router.include_router(admin_router)

@@ -3,6 +3,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.core.cache import cache
 from app.core.database import get_db
 from app.dependencies.auth import (
     get_current_user,
@@ -31,6 +32,12 @@ def list_restaurants(
     """
     Получить список ресторанов с пагинацией.
     """
+    # Формируем ключ кэша на основе параметров
+    cache_key = f"restaurants:list:{skip}:{limit}:{is_active}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return RestaurantList(**cached)
+
     query = db.query(Restaurant)
 
     if is_active is not None:
@@ -39,9 +46,12 @@ def list_restaurants(
     total = query.count()
     restaurants = query.offset(skip).limit(limit).all()
 
-    return RestaurantList(
+    result = RestaurantList(
         items=restaurants, total=total, page=skip // limit + 1, size=limit
     )
+    # Кэшируем на 5 минут (300 секунд)
+    cache.set(cache_key, result.dict(), expire=300)
+    return result
 
 
 @router.get("/{restaurant_id}", response_model=RestaurantResponse)
@@ -82,6 +92,8 @@ def create_restaurant(
     db.add(db_restaurant)
     db.commit()
     db.refresh(db_restaurant)
+    # Инвалидация кэша списков ресторанов
+    cache.clear_pattern("restaurants:list:*")
     return db_restaurant
 
 
@@ -107,6 +119,8 @@ def update_restaurant(
 
     db.commit()
     db.refresh(restaurant)
+    # Инвалидация кэша списков ресторанов
+    cache.clear_pattern("restaurants:list:*")
     return restaurant
 
 
@@ -127,6 +141,8 @@ def delete_restaurant(
 
     db.delete(restaurant)
     db.commit()
+    # Инвалидация кэша списков ресторанов
+    cache.clear_pattern("restaurants:list:*")
     return None
 
 
@@ -148,6 +164,8 @@ def activate_restaurant(
     restaurant.is_active = True
     db.commit()
     db.refresh(restaurant)
+    # Инвалидация кэша списков ресторанов
+    cache.clear_pattern("restaurants:list:*")
     return restaurant
 
 
@@ -169,4 +187,6 @@ def deactivate_restaurant(
     restaurant.is_active = False
     db.commit()
     db.refresh(restaurant)
+    # Инвалидация кэша списков ресторанов
+    cache.clear_pattern("restaurants:list:*")
     return restaurant

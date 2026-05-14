@@ -21,6 +21,7 @@ from app.schemas.order import (
     OrderResponse,
     OrderUpdate,
 )
+from app.tasks.email_tasks import send_order_confirmation
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
@@ -161,6 +162,9 @@ def create_order(
     db.add(db_order)
     db.commit()
     db.refresh(db_order)
+
+    # Отправка подтверждения заказа через Celery (асинхронно)
+    send_order_confirmation.delay(order_id=db_order.id, customer_email=current_user.email)
 
     return db_order
 

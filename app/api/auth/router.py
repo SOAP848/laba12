@@ -9,6 +9,7 @@ from app.core.database import get_db
 from app.core.security import create_access_token, get_password_hash, verify_password
 from app.models.user import User
 from app.schemas.user import LoginRequest, Token, UserCreate, UserResponse
+from app.tasks.email_tasks import send_welcome_email
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -51,6 +52,9 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+
+    # Отправка приветственного email через Celery (асинхронно)
+    send_welcome_email.delay(user_email=db_user.email, user_name=db_user.username)
 
     return db_user
 
