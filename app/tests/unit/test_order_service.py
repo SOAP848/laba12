@@ -2,6 +2,7 @@
 Unit-тесты для OrderService.
 Только проходящие тесты (удалены провалившиеся).
 """
+
 import pytest
 from unittest.mock import MagicMock, create_autospec
 from sqlalchemy.orm import Session
@@ -83,10 +84,7 @@ class TestOrderService:
         mock_query.filter.return_value = mock_query
 
         OrderService.get_all(
-            mock_session,
-            status=OrderStatus.CONFIRMED,
-            restaurant_id=5,
-            user_id=1
+            mock_session, status=OrderStatus.CONFIRMED, restaurant_id=5, user_id=1
         )
 
         # Проверяем цепочку фильтров
@@ -106,7 +104,9 @@ class TestOrderService:
         assert total == 0
 
     # Тест create с отрицательным количеством (должен провалиться на уровне схемы)
-    def test_create_negative_quantity(self, mock_session, sample_restaurant, sample_dish, sample_user):
+    def test_create_negative_quantity(
+        self, mock_session, sample_restaurant, sample_dish, sample_user
+    ):
         """Тест создания заказа с отрицательным количеством (валидация схемы)."""
         # Этот тест проверяет, что схема OrderItemCreate не пропускает quantity < 1
         # Валидация происходит на уровне Pydantic, поэтому сервис не вызывается.
@@ -116,7 +116,9 @@ class TestOrderService:
     # Тесты для update
     def test_update_success(self, mock_session, sample_order):
         """Тест успешного обновления заказа."""
-        update_data = OrderUpdate(status=OrderStatus.CONFIRMED, delivery_address="New Address")
+        update_data = OrderUpdate(
+            status=OrderStatus.CONFIRMED, delivery_address="New Address"
+        )
         OrderService.update(mock_session, sample_order, update_data)
 
         assert sample_order.status == OrderStatus.CONFIRMED
@@ -145,7 +147,9 @@ class TestOrderService:
     # Тесты для update_status
     def test_update_status_success(self, mock_session, sample_order):
         """Тест успешного обновления статуса заказа."""
-        result = OrderService.update_status(mock_session, sample_order, OrderStatus.CONFIRMED)
+        result = OrderService.update_status(
+            mock_session, sample_order, OrderStatus.CONFIRMED
+        )
 
         assert sample_order.status == OrderStatus.CONFIRMED
         assert result == sample_order

@@ -2,6 +2,7 @@
 Unit-тесты для DishService.
 Покрытие всех методов, граничные случаи, обработка ошибок.
 """
+
 import pytest
 from unittest.mock import MagicMock, create_autospec, call
 from sqlalchemy.orm import Session
@@ -61,7 +62,9 @@ class TestDishService:
         mock_session.query.return_value = mock_query
         mock_query.filter.return_value = mock_query
         mock_query.count.return_value = 1
-        mock_query.offset.return_value.limit.return_value.all.return_value = [MagicMock()]
+        mock_query.offset.return_value.limit.return_value.all.return_value = [
+            MagicMock()
+        ]
 
         dishes, total = DishService.get_all(mock_session, restaurant_id=5)
 
@@ -170,7 +173,7 @@ class TestDishService:
 
         # Моделируем создание объекта Dish
         with pytest.MonkeyPatch.context() as mp:
-            mp.setattr('app.services.dish_service.Dish', lambda **kwargs: mock_dish)
+            mp.setattr("app.services.dish_service.Dish", lambda **kwargs: mock_dish)
             result = DishService.create(mock_session, dish_data)
 
         assert result == mock_dish
@@ -195,7 +198,7 @@ class TestDishService:
         mock_session.commit.side_effect = IntegrityError("Duplicate", None, None)
 
         with pytest.MonkeyPatch.context() as mp:
-            mp.setattr('app.services.dish_service.Dish', lambda **kwargs: mock_dish)
+            mp.setattr("app.services.dish_service.Dish", lambda **kwargs: mock_dish)
             with pytest.raises(IntegrityError):
                 DishService.create(mock_session, dish_data)
 
@@ -274,7 +277,9 @@ class TestDishService:
         mock_query.count.return_value = 2
         mock_query.offset.return_value.limit.return_value.all.return_value = mock_dishes
 
-        dishes, total = DishService.get_by_restaurant(mock_session, restaurant_id=5, skip=2, limit=10)
+        dishes, total = DishService.get_by_restaurant(
+            mock_session, restaurant_id=5, skip=2, limit=10
+        )
 
         assert dishes == mock_dishes
         assert total == 2
@@ -338,7 +343,7 @@ class TestDishService:
         )
         mock_dish = MagicMock()
         with pytest.MonkeyPatch.context() as mp:
-            mp.setattr('app.services.dish_service.Dish', lambda **kwargs: mock_dish)
+            mp.setattr("app.services.dish_service.Dish", lambda **kwargs: mock_dish)
             result = DishService.create(mock_session, dish_data)
 
         assert result == mock_dish
