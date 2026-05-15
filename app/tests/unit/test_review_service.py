@@ -166,6 +166,6 @@ class TestReviewService:
 
     def test_update_rating_out_of_range(self):
         """Тест обновления рейтинга вне диапазона (валидация схемы)."""
-        # Схема ReviewUpdate также имеет ограничение rating между 1 и 5.
+        # Схема ReviewUpdate также имеет    ограничение rating между 1 и 5.
         with pytest.raises(ValueError):
             ReviewUpdate(rating=0)
