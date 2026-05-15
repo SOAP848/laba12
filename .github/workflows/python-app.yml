@@ -147,7 +147,7 @@ jobs:
           from openai import OpenAI
 
           client = OpenAI(
-              api_key=os.getenv("LLM7_API_KEY") or "unused",
+              api_key=os.getenv("SECRET_KEY") or "unused",
               base_url="https://api.llm7.io/v1"
           )
 
@@ -184,3 +184,5 @@ jobs:
         uses: thollander/actions-comment-pull-request@v3
         with:
           file-path: summary.txt
+
+ 
