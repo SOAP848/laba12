@@ -2,6 +2,7 @@
 Unit-тесты для FavoriteService.
 Покрытие всех методов, граничные случаи, обработка ошибок.
 """
+
 import pytest
 from unittest.mock import MagicMock, create_autospec
 from sqlalchemy.orm import Session
@@ -45,9 +46,13 @@ class TestFavoriteService:
         mock_session.query.return_value = mock_query
         mock_query.filter.return_value = mock_query
         mock_query.count.return_value = 2
-        mock_query.offset.return_value.limit.return_value.all.return_value = mock_favorites
+        mock_query.offset.return_value.limit.return_value.all.return_value = (
+            mock_favorites
+        )
 
-        favorites, total = FavoriteService.get_all(mock_session, user_id=1, skip=3, limit=5)
+        favorites, total = FavoriteService.get_all(
+            mock_session, user_id=1, skip=3, limit=5
+        )
 
         assert favorites == mock_favorites
         assert total == 2
@@ -57,6 +62,7 @@ class TestFavoriteService:
         assert len(call_args[0]) == 1
         arg = call_args[0][0]
         from sqlalchemy.sql.elements import BinaryExpression
+
         assert isinstance(arg, BinaryExpression)
         # Проверяем, что левая часть - Favorite.user_id
         assert str(arg.left) == "favorites.user_id"
@@ -107,7 +113,9 @@ class TestFavoriteService:
         """Тест добавления дубликата избранного."""
         favorite_data = FavoriteCreate(restaurant_id=5, dish_id=None)
         mock_existing = MagicMock()
-        mock_session.query.return_value.filter.return_value.first.return_value = mock_existing
+        mock_session.query.return_value.filter.return_value.first.return_value = (
+            mock_existing
+        )
 
         with pytest.raises(ValueError, match="Этот объект уже добавлен в избранное"):
             FavoriteService.create(mock_session, favorite_data, sample_user)
@@ -129,7 +137,9 @@ class TestFavoriteService:
         mock_query.filter.return_value = mock_query
         mock_query.first.return_value = mock_favorite
 
-        result = FavoriteService.delete_by_target(mock_session, user_id=1, restaurant_id=5)
+        result = FavoriteService.delete_by_target(
+            mock_session, user_id=1, restaurant_id=5
+        )
 
         assert result is True
         mock_session.delete.assert_called_once_with(mock_favorite)
@@ -162,7 +172,9 @@ class TestFavoriteService:
         mock_query.filter.return_value = mock_query
         mock_query.first.return_value = None
 
-        result = FavoriteService.delete_by_target(mock_session, user_id=1, restaurant_id=999)
+        result = FavoriteService.delete_by_target(
+            mock_session, user_id=1, restaurant_id=999
+        )
 
         assert result is False
         mock_session.delete.assert_not_called()
@@ -176,7 +188,9 @@ class TestFavoriteService:
         mock_query.filter.return_value = mock_query
         mock_query.first.return_value = MagicMock()  # есть запись
 
-        result = FavoriteService.check_favorite(mock_session, user_id=1, restaurant_id=5)
+        result = FavoriteService.check_favorite(
+            mock_session, user_id=1, restaurant_id=5
+        )
 
         assert result is True
 
@@ -187,7 +201,9 @@ class TestFavoriteService:
         mock_query.filter.return_value = mock_query
         mock_query.first.return_value = None
 
-        result = FavoriteService.check_favorite(mock_session, user_id=1, restaurant_id=5)
+        result = FavoriteService.check_favorite(
+            mock_session, user_id=1, restaurant_id=5
+        )
 
         assert result is False
 
@@ -250,7 +266,9 @@ class TestFavoriteService:
         mock_query.filter.return_value = mock_query
         mock_query.first.return_value = None
 
-        result = FavoriteService.check_favorite(mock_session, user_id=1, restaurant_id=5, dish_id=20)
+        result = FavoriteService.check_favorite(
+            mock_session, user_id=1, restaurant_id=5, dish_id=20
+        )
 
         assert result is False
         # Проверяем, что фильтры вызваны

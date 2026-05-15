@@ -2,6 +2,7 @@
 Unit-тесты для ReviewService.
 Только проходящие тесты (удалены провалившиеся).
 """
+
 import pytest
 from unittest.mock import MagicMock, create_autospec
 from sqlalchemy.orm import Session
@@ -47,7 +48,9 @@ class TestReviewService:
         mock_query = MagicMock()
         mock_session.query.return_value = mock_query
         mock_query.count.return_value = 2
-        mock_query.offset.return_value.limit.return_value.all.return_value = mock_reviews
+        mock_query.offset.return_value.limit.return_value.all.return_value = (
+            mock_reviews
+        )
 
         reviews, total = ReviewService.get_all(mock_session)
 
@@ -62,9 +65,13 @@ class TestReviewService:
         mock_session.query.return_value = mock_query
         mock_query.filter.return_value = mock_query
         mock_query.count.return_value = 1
-        mock_query.offset.return_value.limit.return_value.all.return_value = mock_reviews
+        mock_query.offset.return_value.limit.return_value.all.return_value = (
+            mock_reviews
+        )
 
-        reviews, total = ReviewService.get_all(mock_session, restaurant_id=5, skip=2, limit=1)
+        reviews, total = ReviewService.get_all(
+            mock_session, restaurant_id=5, skip=2, limit=1
+        )
 
         assert reviews == mock_reviews
         assert total == 1
@@ -140,13 +147,12 @@ class TestReviewService:
     def test_create_duplicate_error(self, mock_session, sample_user):
         """Тест создания дубликата отзыва."""
         review_data = ReviewCreate(
-            restaurant_id=5,
-            dish_id=None,
-            rating=5,
-            comment="Duplicate"
+            restaurant_id=5, dish_id=None, rating=5, comment="Duplicate"
         )
         mock_existing = MagicMock()
-        mock_session.query.return_value.filter.return_value.first.return_value = mock_existing
+        mock_session.query.return_value.filter.return_value.first.return_value = (
+            mock_existing
+        )
 
         with pytest.raises(ValueError, match="Вы уже оставляли отзыв на этот объект"):
             ReviewService.create(mock_session, review_data, sample_user)
@@ -156,12 +162,7 @@ class TestReviewService:
         # Схема ReviewCreate имеет ограничение rating между 1 и 5.
         # Это проверяется Pydantic.
         with pytest.raises(ValueError):
-            ReviewCreate(
-                restaurant_id=5,
-                dish_id=None,
-                rating=6,
-                comment="Too high"
-            )
+            ReviewCreate(restaurant_id=5, dish_id=None, rating=6, comment="Too high")
 
     def test_update_rating_out_of_range(self):
         """Тест обновления рейтинга вне диапазона (валидация схемы)."""
