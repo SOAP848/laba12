@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import create_access_token, get_password_hash, verify_password
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.user import LoginRequest, Token, UserCreate, UserResponse
 from app.tasks.email_tasks import send_welcome_email
 
@@ -46,7 +46,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         hashed_password=hashed_password,
         phone_number=user_data.phone_number,
         address=user_data.address,
-        role="customer",
+        role=UserRole.CUSTOMER,
     )
 
     db.add(db_user)

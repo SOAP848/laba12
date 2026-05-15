@@ -81,17 +81,17 @@ def create_review(
                 status_code=403, detail="Нельзя оставить отзыв на чужой заказ"
             )
 
-    # Проверка, не оставлял ли пользователь уже отзыв на этот объект
-    existing = (
-        db.query(Review)
-        .filter(
-            Review.user_id == current_user.id,
-            Review.restaurant_id == review_data.restaurant_id,
-            Review.dish_id == review_data.dish_id,
-            Review.order_id == review_data.order_id,
+    # Проверка дубликата (в SQL NULL = NULL не истинно, фильтруем явно)
+    existing_query = db.query(Review).filter(Review.user_id == current_user.id)
+    if review_data.restaurant_id is not None:
+        existing_query = existing_query.filter(
+            Review.restaurant_id == review_data.restaurant_id
         )
-        .first()
-    )
+    if review_data.dish_id is not None:
+        existing_query = existing_query.filter(Review.dish_id == review_data.dish_id)
+    if review_data.order_id is not None:
+        existing_query = existing_query.filter(Review.order_id == review_data.order_id)
+    existing = existing_query.first()
     if existing:
         raise HTTPException(
             status_code=400, detail="Вы уже оставили отзыв на этот объект"
@@ -136,7 +136,7 @@ def update_review(
     if not review:
         raise HTTPException(status_code=404, detail="Отзыв не найден")
 
-    if review.user_id != current_user.id and current_user.role != UserRole.admin:
+    if review.user_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Недостаточно прав")
 
     for field, value in review_data.model_dump(exclude_unset=True).items():
@@ -160,7 +160,7 @@ def delete_review(
     if not review:
         raise HTTPException(status_code=404, detail="Отзыв не найден")
 
-    if review.user_id != current_user.id and current_user.role != UserRole.admin:
+    if review.user_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Недостаточно прав")
 
     db.delete(review)

@@ -33,7 +33,8 @@ def get_current_user(
     user = db.query(User).filter(User.username == username).first()
     if user is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Пользователь не найден",
         )
 
     if not user.is_active:

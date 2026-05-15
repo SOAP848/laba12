@@ -13,7 +13,7 @@ from app.dependencies.auth import (
 from app.models.dish import Dish
 from app.models.order import Order, OrderItem, OrderStatus, PaymentStatus
 from app.models.restaurant import Restaurant
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.order import (
     OrderCreate,
     OrderItemCreate,
@@ -43,7 +43,7 @@ def list_orders(
     query = db.query(Order)
 
     # Ограничение для обычных пользователей
-    if current_user.role not in ["admin", "restaurant_manager"]:
+    if current_user.role not in (UserRole.ADMIN, UserRole.RESTAURANT_MANAGER):
         query = query.filter(Order.user_id == current_user.id)
 
     if status is not None:
@@ -52,7 +52,10 @@ def list_orders(
     if restaurant_id is not None:
         query = query.filter(Order.restaurant_id == restaurant_id)
 
-    if user_id is not None and current_user.role in ["admin", "restaurant_manager"]:
+    if user_id is not None and current_user.role in (
+        UserRole.ADMIN,
+        UserRole.RESTAURANT_MANAGER,
+    ):
         query = query.filter(Order.user_id == user_id)
 
     total = query.count()
@@ -78,7 +81,7 @@ def get_order(
 
     # Проверка прав доступа
     if (
-        current_user.role not in ["admin", "restaurant_manager"]
+        current_user.role not in (UserRole.ADMIN, UserRole.RESTAURANT_MANAGER)
         and order.user_id != current_user.id
     ):
         raise HTTPException(
@@ -187,7 +190,7 @@ def update_order(
             status_code=status.HTTP_404_NOT_FOUND, detail="Заказ не найден"
         )
 
-    update_data = order_data.dict(exclude_unset=True)
+    update_data = order_data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(order, field, value)
 
@@ -213,7 +216,7 @@ def cancel_order(
 
     # Проверка прав
     if (
-        current_user.role not in ["admin", "restaurant_manager"]
+        current_user.role not in (UserRole.ADMIN, UserRole.RESTAURANT_MANAGER)
         and order.user_id != current_user.id
     ):
         raise HTTPException(
@@ -255,7 +258,7 @@ def update_order_status(
         )
 
     # Проверка, что ресторан принадлежит менеджеру (если менеджер)
-    if current_user.role == "restaurant_manager":
+    if current_user.role == UserRole.RESTAURANT_MANAGER:
         # Здесь можно добавить проверку связи менеджера с рестораном
         pass
 

@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from sqlalchemy import func as sql_func
 from sqlalchemy.orm import Session
 
 from app.models.review import Review
@@ -50,16 +51,17 @@ class ReviewService:
                 "Должен быть указан ровно один целевой объект (ресторан или блюдо)"
             )
 
-        # Проверка, что пользователь ещё не оставлял отзыв на этот объект
-        existing = (
-            db.query(Review)
-            .filter(
-                Review.user_id == user.id,
-                Review.restaurant_id == review_data.restaurant_id,
-                Review.dish_id == review_data.dish_id,
+        # Проверка дубликата (в SQL сравнение с NULL не находит совпадений)
+        existing_query = db.query(Review).filter(Review.user_id == user.id)
+        if review_data.restaurant_id is not None:
+            existing_query = existing_query.filter(
+                Review.restaurant_id == review_data.restaurant_id
             )
-            .first()
-        )
+        if review_data.dish_id is not None:
+            existing_query = existing_query.filter(
+                Review.dish_id == review_data.dish_id
+            )
+        existing = existing_query.first()
         if existing:
             raise ValueError("Вы уже оставляли отзыв на этот объект")
 
@@ -100,12 +102,8 @@ class ReviewService:
         else:
             return None
 
-        ratings = query.with_entities(Review.rating).all()
-        if not ratings:
-            return None
-
-        total = sum(r[0] for r in ratings)
-        return total / len(ratings)
+        avg_rating = query.with_entities(sql_func.avg(Review.rating)).scalar()
+        return float(avg_rating) if avg_rating is not None else None
 
     @staticmethod
     def get_user_reviews(

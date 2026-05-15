@@ -14,26 +14,17 @@ class TestRedisCache:
             mock_from_url.return_value = mock_client
             yield mock_client
 
-    def test_get_pickle(self, mock_redis_client):
-        """Получение значения, сериализованного pickle."""
-        cache = RedisCache(url="redis://localhost:6379/0")
-        mock_redis_client.get.return_value = b"pickled_data"
-        with patch("pickle.loads", return_value={"foo": "bar"}) as mock_loads:
-            result = cache.get("test_key")
-            mock_loads.assert_called_once_with(b"pickled_data")
-            assert result == {"foo": "bar"}
-
     def test_get_json(self, mock_redis_client):
         """Получение значения, сериализованного JSON."""
-        cache = RedisCache()
-        mock_redis_client.get.return_value = b'{"foo": "bar"}'
+        cache = RedisCache(url="redis://localhost:6379/0")
+        mock_redis_client.get.return_value = '{"foo": "bar"}'
         result = cache.get("test_key")
         assert result == {"foo": "bar"}
 
     def test_get_string(self, mock_redis_client):
-        """Получение строкового значения."""
+        """Получение невалидного JSON как строки."""
         cache = RedisCache()
-        mock_redis_client.get.return_value = b"plain string"
+        mock_redis_client.get.return_value = "plain string"
         result = cache.get("test_key")
         assert result == "plain string"
 
@@ -44,34 +35,24 @@ class TestRedisCache:
         result = cache.get("test_key")
         assert result is None
 
-    def test_set_pickle(self, mock_redis_client):
-        """Установка значения с pickle сериализацией."""
-        cache = RedisCache()
-        with patch("pickle.dumps", return_value=b"pickled") as mock_dumps:
-            cache.set("key", {"complex": "object"})
-            mock_dumps.assert_called_once_with({"complex": "object"})
-            mock_redis_client.setex.assert_called_once_with("key", 3600, b"pickled")
-
     def test_set_json(self, mock_redis_client):
-        """Установка значения с JSON сериализацией (если pickle падает)."""
+        """Установка значения с JSON сериализацией."""
         cache = RedisCache()
-        with patch("pickle.dumps", side_effect=Exception("Cannot pickle")):
-            with patch("json.dumps", return_value='{"simple": "object"}') as mock_json:
-                cache.set("key", {"simple": "object"})
-                mock_json.assert_called_once_with({"simple": "object"})
-                mock_redis_client.setex.assert_called_once_with(
-                    "key", 3600, b'{"simple": "object"}'
-                )
+        cache.set("key", {"simple": "object"})
+        mock_redis_client.setex.assert_called_once_with(
+            "key", 3600, '{"simple": "object"}'
+        )
 
-    def test_set_string(self, mock_redis_client):
-        """Установка строкового значения (если и pickle, и JSON падают)."""
+    def test_set_non_serializable(self, mock_redis_client):
+        """Установка значения с default=str для несериализуемых типов."""
         cache = RedisCache()
-        with patch("pickle.dumps", side_effect=Exception("Cannot pickle")):
-            with patch("json.dumps", side_effect=Exception("Cannot json")):
-                cache.set("key", "plain string")
-                mock_redis_client.setex.assert_called_once_with(
-                    "key", 3600, b"plain string"
-                )
+        from datetime import datetime
+
+        cache.set("key", datetime(2024, 1, 1))
+        call_args = mock_redis_client.setex.call_args[0]
+        assert call_args[0] == "key"
+        assert call_args[1] == 3600
+        assert "2024-01-01" in call_args[2]
 
     def test_delete(self, mock_redis_client):
         """Удаление ключа."""
@@ -88,17 +69,16 @@ class TestRedisCache:
         assert cache.exists("key") is False
 
     def test_clear_pattern(self, mock_redis_client):
-        """Очистка по шаблону."""
+        """Очистка по шаблону через SCAN."""
         cache = RedisCache()
-        mock_redis_client.keys.return_value = [b"key1", b"key2"]
+        mock_redis_client.scan.side_effect = [(1, ["key1", "key2"]), (0, [])]
         cache.clear_pattern("pattern*")
-        mock_redis_client.keys.assert_called_once_with("pattern*")
-        mock_redis_client.delete.assert_called_once_with(b"key1", b"key2")
+        mock_redis_client.scan.assert_called()
+        mock_redis_client.delete.assert_called_once_with("key1", "key2")
 
     def test_clear_pattern_no_keys(self, mock_redis_client):
         """Очистка по шаблону, когда ключей нет."""
         cache = RedisCache()
-        mock_redis_client.keys.return_value = []
+        mock_redis_client.scan.return_value = (0, [])
         cache.clear_pattern("pattern*")
-        mock_redis_client.keys.assert_called_once_with("pattern*")
         mock_redis_client.delete.assert_not_called()

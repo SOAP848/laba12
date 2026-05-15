@@ -7,7 +7,7 @@ from app.core.database import get_db
 from app.dependencies.auth import get_current_user, require_restaurant_manager
 from app.models.order import Order, OrderStatus
 from app.models.tracking import OrderTracking
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.order import OrderTrackingCreate, OrderTrackingResponse
 
 router = APIRouter(prefix="/orders/{order_id}/tracking", tags=["Order Tracking"])
@@ -30,7 +30,7 @@ def get_order_tracking(
 
     # Проверка прав доступа
     if (
-        current_user.role not in ["admin", "restaurant_manager"]
+        current_user.role not in (UserRole.ADMIN, UserRole.RESTAURANT_MANAGER)
         and order.user_id != current_user.id
     ):
         raise HTTPException(
@@ -106,7 +106,7 @@ def get_current_tracking(
 
     # Проверка прав доступа
     if (
-        current_user.role not in ["admin", "restaurant_manager"]
+        current_user.role not in (UserRole.ADMIN, UserRole.RESTAURANT_MANAGER)
         and order.user_id != current_user.id
     ):
         raise HTTPException(
@@ -150,7 +150,7 @@ def get_estimated_delivery(
 
     # Проверка прав доступа
     if (
-        current_user.role not in ["admin", "restaurant_manager"]
+        current_user.role not in (UserRole.ADMIN, UserRole.RESTAURANT_MANAGER)
         and order.user_id != current_user.id
     ):
         raise HTTPException(

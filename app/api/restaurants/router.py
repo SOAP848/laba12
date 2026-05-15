@@ -50,7 +50,7 @@ def list_restaurants(
         items=restaurants, total=total, page=skip // limit + 1, size=limit
     )
     # Кэшируем на 5 минут (300 секунд)
-    cache.set(cache_key, result.dict(), expire=300)
+    cache.set(cache_key, result.model_dump(mode="json"), expire=300)
     return result
 
 
@@ -88,7 +88,7 @@ def create_restaurant(
             detail="Ресторан с таким названием уже существует",
         )
 
-    db_restaurant = Restaurant(**restaurant_data.dict())
+    db_restaurant = Restaurant(**restaurant_data.model_dump())
     db.add(db_restaurant)
     db.commit()
     db.refresh(db_restaurant)
@@ -113,7 +113,7 @@ def update_restaurant(
             status_code=status.HTTP_404_NOT_FOUND, detail="Ресторан не найден"
         )
 
-    update_data = restaurant_data.dict(exclude_unset=True)
+    update_data = restaurant_data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(restaurant, field, value)
 

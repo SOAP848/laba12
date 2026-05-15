@@ -1,12 +1,15 @@
+from datetime import datetime, timezone
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
+from app.core.cache import cache
 from app.core.database import get_db
 from app.dependencies.auth import require_admin
 from app.models.dish import Dish
-from app.models.order import Order
+from app.models.order import Order, OrderStatus
 from app.models.restaurant import Restaurant
 from app.models.user import User
 from app.schemas.dish import DishResponse, DishUpdate
@@ -34,7 +37,13 @@ def get_admin_stats(
         db.query(Order)
         .filter(
             Order.status.in_(
-                ["pending", "confirmed", "preparing", "ready", "on_delivery"]
+                [
+                    OrderStatus.PENDING,
+                    OrderStatus.CONFIRMED,
+                    OrderStatus.PREPARING,
+                    OrderStatus.READY,
+                    OrderStatus.ON_DELIVERY,
+                ]
             )
         )
         .count()
@@ -42,7 +51,7 @@ def get_admin_stats(
 
     today_orders = (
         db.query(Order)
-        .filter(db.func.date(Order.created_at) == db.func.current_date())
+        .filter(func.date(Order.created_at) == func.current_date())
         .count()
     )
 
@@ -167,7 +176,7 @@ def clear_cache(current_user: User = Depends(require_admin)):
     """
     Очистить кэш системы.
     """
-    # Заглушка
+    cache.clear_pattern("*")
     return {"message": "Кэш очищен"}
 
 
@@ -180,7 +189,7 @@ def system_health(
     """
     # Проверка подключения к БД
     try:
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         db_status = "healthy"
     except Exception as e:
         db_status = f"error: {str(e)}"
@@ -188,5 +197,5 @@ def system_health(
     return {
         "database": db_status,
         "api": "healthy",
-        "timestamp": "2023-01-01T00:00:00Z",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }

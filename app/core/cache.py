@@ -1,5 +1,4 @@
 import json
-import pickle
 from typing import Any, Optional
 
 import redis
@@ -9,7 +8,7 @@ from app.core.config import settings
 
 class RedisCache:
     def __init__(self, url: str = settings.REDIS_URL):
-        self.client = redis.from_url(url, decode_responses=False)
+        self.client = redis.from_url(url, decode_responses=True)
 
     def get(self, key: str) -> Optional[Any]:
         """Получить значение по ключу."""
@@ -17,24 +16,13 @@ class RedisCache:
         if data is None:
             return None
         try:
-            return pickle.loads(data)
-        except pickle.UnpicklingError:
-            # Если не сериализовано pickle, попробуем как JSON строку
-            try:
-                return json.loads(data.decode())
-            except (json.JSONDecodeError, UnicodeDecodeError):
-                return data.decode()
+            return json.loads(data)
+        except json.JSONDecodeError:
+            return data
 
     def set(self, key: str, value: Any, expire: int = 3600) -> None:
         """Установить значение с временем жизни в секундах."""
-        try:
-            data = pickle.dumps(value)
-        except Exception:
-            # Если не сериализуется pickle, попробуем JSON
-            try:
-                data = json.dumps(value).encode()
-            except Exception:
-                data = str(value).encode()
+        data = json.dumps(value, default=str)
         self.client.setex(key, expire, data)
 
     def delete(self, key: str) -> None:
@@ -46,10 +34,14 @@ class RedisCache:
         return self.client.exists(key) == 1
 
     def clear_pattern(self, pattern: str) -> None:
-        """Удалить все ключи, соответствующие шаблону."""
-        keys = self.client.keys(pattern)
-        if keys:
-            self.client.delete(*keys)
+        """Удалить все ключи, соответствующие шаблону (через SCAN, без блокировки Redis)."""
+        cursor = 0
+        while True:
+            cursor, keys = self.client.scan(cursor=cursor, match=pattern, count=100)
+            if keys:
+                self.client.delete(*keys)
+            if cursor == 0:
+                break
 
 
 # Глобальный экземпляр кэша

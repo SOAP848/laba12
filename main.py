@@ -10,8 +10,9 @@ from app.core.logging import setup_logging
 # Настройка логирования
 setup_logging()
 
-# Создание таблиц (в продакшене используем миграции)
-Base.metadata.create_all(bind=engine)
+# Создание таблиц только в режиме разработки (в продакшене — Alembic)
+if settings.DEBUG:
+    Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Food Delivery Service API",
