@@ -51,7 +51,7 @@ food-delivery-api/
 │   └── tests/                 # Тесты
 ├── alembic/                   # Миграции 
 ├── .github/workflows/   
-│   └── python-app.yml         # CI/CD (включая ИИ-ревью)
+│   └── python-app.yml         # CI/CD 
 ├── scripts/
 │   └── ai_review.py           # Скрипт для ИИ-ревью PR
 ├── docker-compose.yml         # Docker Compose 
