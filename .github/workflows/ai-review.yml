@@ -1,0 +1,92 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Get Diff
+        id: git_diff
+        run: |
+          git config --global --add safe.directory /github/workspace
+          # Получаем diff между базовой веткой и веткой PR
+          git fetch origin ${{ github.base_ref }}
+          git diff origin/${{ github.base_ref }} HEAD > diff.txt
+          echo "--- Diff Preview ---"
+          head -n 5 diff.txt
+          echo "--------------------"
+          
+          echo "Captured diff size: $(stat -c%s diff.txt) bytes"
+          
+          if [ -s diff.txt ]; then
+            echo "DIFF_EXIST=true" >> $GITHUB_ENV
+          else
+            echo "DIFF_EXIST=false" >> $GITHUB_ENV
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install openai
+
+      - name: Generate AI Summary
+        env:
+          LLM7_API_KEY: ${{ secrets.SECRET_KEY }}
+        shell: python
+        run: |
+          import os
+          from openai import OpenAI
+
+          client = OpenAI(
+              api_key=os.getenv("LLM7_API_KEY") or "unused",
+              base_url="https://api.llm7.io/v1"
+          )
+
+          try:
+              if not os.path.exists("diff.txt") or os.path.getsize("diff.txt") == 0:
+                  summary = "⚠️ Diff пуст. Возможно, изменений в коде нет или произошла ошибка при получении diff."
+              else:
+                  with open("diff.txt", "r", encoding="utf-8") as f:
+                      diff_content = f.read()
+                  
+                  truncated_diff = diff_content[:15000]
+
+                  prompt = f""" Ты — профессиональный техлид. Проанализируй изменения в коде (diff) и напиши краткое резюме для Pull Request на русском языке.
+          Используй формат:
+          - **Что сделано:** (список ключевых изменений)
+          - **На что обратить внимание:** (возможные риски или важные правки)
+
+          Вот текст diff:
+          {truncated_diff}"""
+
+                  response = client.chat.completions.create(
+                      model="default",
+                      messages=[{"role": "user", "content": prompt}],
+                      temperature=0.2
+                  )
+                  summary = response.choices[0].message.content
+          except Exception as e:
+              summary = f"⚠️ Ошибка при генерации описания: {str(e)}"
+
+          with open("summary.txt", "w", encoding="utf-8") as f:
+              f.write(summary)
+
+      - name: Comment PR
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          file-path: summary.txt
